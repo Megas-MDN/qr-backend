@@ -1,5 +1,5 @@
 const express = require('express');
-const { createServer } = require('http');
+const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const router = require('./routes');
@@ -7,15 +7,22 @@ const dbConn = require('./models/dbConn');
 const { handlerInventory } = require('./services/productsService');
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: '*',
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.use(router);
 
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
+const server = http.createServer(app);
+const io = new Server(server, {
   cors: {
     origin: '*',
+    methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
@@ -80,5 +87,5 @@ io.on('connection', (socket) => {
 });
 
 dbConn().then(() =>
-  httpServer.listen(port, () => console.log('Server Up na porta %s', port))
+  server.listen(port, () => console.log('Server Up na porta %s', port))
 );
